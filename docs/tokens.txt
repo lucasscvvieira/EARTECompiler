@@ -13,29 +13,33 @@ IS                      ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 void count(void);
 %}
 
-%%Variaveis
-"void"			{ count(); return(VOID); } %%possivelmente
+"/*"			{ comment(); }
+"//"[^\n]*              { /* consume //-comment */ }
+
+
+/* Variaveis */
+"void"			{ count(); return(VOID); } /* Possivelmente */
 "int"			{ count(); return(INT); }
 "float"			{ count(); return(FLOAT); }
 
-%%Strings
+/* String */
 "char"			{ count(); return(CHAR); }
 
-%%Condicional
+/* Condicional */
 "if"			{ count(); return(IF); }
 "else"			{ count(); return(ELSE); }
 
-%%Lacos de repeticao
+/* Laços de Repetição */
 "do"			{ count(); return(DO); }
 "for"			{ count(); return(FOR); }
 "while"			{ count(); return(WHILE); }
 
 
-%%Estruturas
-"struct"		{ count(); return(STRUCT); } %%possivelmente
+/* Estrutura */
+"struct"		{ count(); return(STRUCT); } /* Possivelmente */
 
 
-%%Expressoes regulares
+/* Expressões Regulares */
 {L}({L}|{D})*		{ count(); return(check_type()); }
 0[xX]{H}+{IS}?		{ count(); return(CONSTANT); }
 0[0-7]*{IS}?		{ count(); return(CONSTANT); }
@@ -49,7 +53,7 @@ L?'(\\.|[^\\'\n])+'	{ count(); return(CONSTANT); }
 0[xX]{H}+"."{H}*{P}{FS}?     { count(); return(CONSTANT); }
 L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); }
 
-%%Operadores Binarios
+/* Operadores Binários */
 ">>="			{ count(); return(RIGHT_ASSIGN); }
 "<<="			{ count(); return(LEFT_ASSIGN); }
 "+="			{ count(); return(ADD_ASSIGN); }
@@ -58,12 +62,12 @@ L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); }
 "/="			{ count(); return(DIV_ASSIGN); }
 "%="			{ count(); return(MOD_ASSIGN); }
 
-%%Operadores Logicos
+/* Operadores Lógicos */
 "&="			{ count(); return(AND_ASSIGN); }
 "^="			{ count(); return(XOR_ASSIGN); }
 "|="			{ count(); return(OR_ASSIGN); }
 
-%%Tokens para condicional
+/* Tokens para Condicional */
 ">>"			{ count(); return(RIGHT_OP); }
 "<<"			{ count(); return(LEFT_OP); }
 "&&"			{ count(); return(AND_OP); }
@@ -77,11 +81,11 @@ L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); }
 ("}"|"%>")		{ count(); return('}'); }
 ","			{ count(); return(','); }
 
-%%Operadores
-"++"			{ count(); return(INC_OP); } %%possivelmente
-"--"			{ count(); return(DEC_OP); } %%possivelmente
+/* Operadores */
+"++"			{ count(); return(INC_OP); } /* Possivelmente */
+"--"			{ count(); return(DEC_OP); } /* Possivelmente */
 
-%%Uso geral
+/* Uso Geral */
 "="			{ count(); return('='); }
 "("			{ count(); return('('); }
 ")"			{ count(); return(')'); }

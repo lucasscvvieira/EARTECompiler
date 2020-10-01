@@ -14,6 +14,7 @@ As estruturas contempladas serão:
 - Operações Matemáticas
 - Operações com Strings
 - IO Simplificado
+- Estruturas de Repetição
 
 ### Variáveis
 

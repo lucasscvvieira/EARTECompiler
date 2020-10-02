@@ -86,6 +86,7 @@ L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); }
 "--"			{ count(); return(DEC_OP); } /* Possivelmente */
 
 /* Uso Geral */
+"return"		{ count(); return(RETURN); }
 "="			{ count(); return('='); }
 "("			{ count(); return('('); }
 ")"			{ count(); return(')'); }

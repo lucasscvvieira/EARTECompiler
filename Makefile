@@ -63,12 +63,6 @@ depend: $(SRCS)
 
 # DO NOT DELETE THIS LINE -- make depend needs it
 
-env:
-	./scripts/env.sh
-
 format:
 	#indent -br -ce -cdw -bad -bap -sc ./src/*.h
 	indent -orig ./src/*.c
-
-run:
-	./ec

@@ -133,7 +133,7 @@ declaration
 	;
 
 declaration_specifiers
-	| type_specifier declaration_specifiers
+	: type_specifier declaration_specifiers
 	| type_specifier
 	;
 

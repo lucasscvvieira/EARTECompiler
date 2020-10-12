@@ -55,3 +55,7 @@ dkms.conf
 ec
 
 *~
+
+# bison files
+src/parser.h
+src/parser.c

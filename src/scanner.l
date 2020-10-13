@@ -27,6 +27,7 @@ ES  (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 WS  [ \t\v\n\f]
 
 %{
+    
 #include "parser.h" // For the token types from bison.
 
 extern void yyerror(const char *);  /* prints grammar violation message */
@@ -35,9 +36,15 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 
 #define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 
+static void comment(void);
+
 %}
 
 %%
+
+"/*"                                    { comment(); }
+"//".*                                    { /* consume //-comment */ }
+
 "char"					{ return(CHAR); }
 "do"					{ return(DO); }
 "else"					{ return(ELSE); }
@@ -111,3 +118,24 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 
 {WS}+					{ /* whitespace separates tokens */ }
 .					{ /* discard bad characters */ }
+
+%%
+
+static void comment(void)
+{
+    int c;
+
+    while ((c = input()) != 0)
+        if (c == '*')
+        {
+            while ((c = input()) == '*')
+                ;
+
+            if (c == '/')
+                return;
+
+            if (c == 0)
+                break;
+        }
+    yyerror("unterminated comment");
+}

@@ -1,169 +1,78 @@
-D			[0-9]
-L			[a-zA-Z_]
-H			[a-fA-F0-9]
-E			([Ee][+-]?{D}+)
-P                       ([Pp][+-]?{D}+)
-FS			(f|F|l|L)
-IS                      ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
-
-%{
-#include <stdio.h>
-#include "y.tab.h"
-
-void count(void);
-%}
-
-"/*"			{ comment(); }
-"//"[^\n]*              { /* consume //-comment */ }
-
-
-/* Variaveis */
-"void"			{ count(); return(VOID); } /* Possivelmente */
-"int"			{ count(); return(INT); }
-"float"			{ count(); return(FLOAT); }
-
-/* String */
-"char"			{ count(); return(CHAR); }
-
-/* Condicional */
-"if"			{ count(); return(IF); }
-"else"			{ count(); return(ELSE); }
-
-/* Laços de Repetição */
-"do"			{ count(); return(DO); }
-"for"			{ count(); return(FOR); }
-"while"			{ count(); return(WHILE); }
-
-
-/* Estrutura */
-"struct"		{ count(); return(STRUCT); } /* Possivelmente */
-
-
-/* Expressões Regulares */
-{L}({L}|{D})*		{ count(); return(check_type()); }
-0[xX]{H}+{IS}?		{ count(); return(CONSTANT); }
-0[0-7]*{IS}?		{ count(); return(CONSTANT); }
-[1-9]{D}*{IS}?		{ count(); return(CONSTANT); }
-L?'(\\.|[^\\'\n])+'	{ count(); return(CONSTANT); }
-{D}+{E}{FS}?		{ count(); return(CONSTANT); }
-{D}*"."{D}+{E}?{FS}?	{ count(); return(CONSTANT); }
-{D}+"."{D}*{E}?{FS}?	{ count(); return(CONSTANT); }
-0[xX]{H}+{P}{FS}?	{ count(); return(CONSTANT); }
-0[xX]{H}*"."{H}+{P}{FS}?     { count(); return(CONSTANT); }
-0[xX]{H}+"."{H}*{P}{FS}?     { count(); return(CONSTANT); }
-L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); }
-
-/* Operadores Binários */
-">>="			{ count(); return(RIGHT_ASSIGN); }
-"<<="			{ count(); return(LEFT_ASSIGN); }
-"+="			{ count(); return(ADD_ASSIGN); }
-"-="			{ count(); return(SUB_ASSIGN); }
-"*="			{ count(); return(MUL_ASSIGN); }
-"/="			{ count(); return(DIV_ASSIGN); }
-"%="			{ count(); return(MOD_ASSIGN); }
-
-/* Operadores Lógicos */
-"&="			{ count(); return(AND_ASSIGN); }
-"^="			{ count(); return(XOR_ASSIGN); }
-"|="			{ count(); return(OR_ASSIGN); }
-
-/* Tokens para Condicional */
-">>"			{ count(); return(RIGHT_OP); }
-"<<"			{ count(); return(LEFT_OP); }
-"&&"			{ count(); return(AND_OP); }
-"||"			{ count(); return(OR_OP); }
-"<="			{ count(); return(LE_OP); }
-">="			{ count(); return(GE_OP); }
-"=="			{ count(); return(EQ_OP); }
-"!="			{ count(); return(NE_OP); }
-";"			{ count(); return(';'); }
-("{"|"<%")		{ count(); return('{'); }
-("}"|"%>")		{ count(); return('}'); }
-","			{ count(); return(','); }
-
-/* Operadores */
-"++"			{ count(); return(INC_OP); } /* Possivelmente */
-"--"			{ count(); return(DEC_OP); } /* Possivelmente */
-
-/* Uso Geral */
-"return"		{ count(); return(RETURN); }
-"="			{ count(); return('='); }
-"("			{ count(); return('('); }
-")"			{ count(); return(')'); }
-("["|"<:")		{ count(); return('['); }
-("]"|":>")		{ count(); return(']'); }
-"."			{ count(); return('.'); }
-"&"			{ count(); return('&'); }
-"!"			{ count(); return('!'); }
-"~"			{ count(); return('~'); }
-"-"			{ count(); return('-'); }
-"+"			{ count(); return('+'); }
-"*"			{ count(); return('*'); }
-"/"			{ count(); return('/'); }
-"%"			{ count(); return('%'); }
-"<"			{ count(); return('<'); }
-">"			{ count(); return('>'); }
-"^"			{ count(); return('^'); }
-"|"			{ count(); return('|'); }
-"?"			{ count(); return('?'); }
-
-[ \t\v\n\f]		{ count(); }
-.			{ /* Add code to complain about unmatched characters */ }
-
 %%
+"/*"                                    { comment(); }
+"//".*                                    { /* consume //-comment */ }
 
-int yywrap(void)
-{
-	return 1;
-}
+"char"					{ return(CHAR); }
+"do"					{ return(DO); }
+"else"					{ return(ELSE); }
+"float"					{ return(FLOAT); }
+"for"					{ return(FOR); }
+"if"					{ return(IF); }
+"int"					{ return(INT); }
+"return"				{ return(RETURN); }
+"while"					{ return(WHILE); }
+"__func__"                              { return FUNC_NAME; }
 
+{L}{A}*					{ return IDENTIFIER; }
 
-void comment(void)
-{
-	char c, prev = 0;
-  
-	while ((c = input()) != 0)      /* (EOF maps to 0) */
-	{
-		if (c == '/' && prev == '*')
-			return;
-		prev = c;
-	}
-	error("unterminated comment");
-}
+{HP}{H}+{IS}?				{ return CONSTANT; }
+{NZ}{D}*{IS}?				{ return CONSTANT; }
+"0"{O}*{IS}?				{ return CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"		{ return CONSTANT; }
 
+{D}+{E}{FS}?				{ return CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			{ return CONSTANT; }
+{D}+"."{E}?{FS}?			{ return CONSTANT; }
+{HP}{H}+{P}{FS}?			{ return CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			{ return CONSTANT; }
+{HP}{H}+"."{P}{FS}?			{ return CONSTANT; }
 
-int column = 0;
-
-void count(void)
-{
-	int i;
-
-	for (i = 0; yytext[i] != '\0'; i++)
-		if (yytext[i] == '\n')
-			column = 0;
-		else if (yytext[i] == '\t')
-			column += 8 - (column % 8);
-		else
-			column++;
-
-	ECHO;
-}
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ return STRING_LITERAL; }
 
 
-int check_type(void)
-{
-/*
-* pseudo code --- this is what it should check
-*
-*	if (yytext == type_name)
-*		return TYPE_NAME;
-*
-*	return IDENTIFIER;
-*/
+">>="					{ return RIGHT_ASSIGN; }
+"<<="					{ return LEFT_ASSIGN; }
+"+="					{ return ADD_ASSIGN; }
+"-="					{ return SUB_ASSIGN; }
+"*="					{ return MUL_ASSIGN; }
+"/="					{ return DIV_ASSIGN; }
+"%="					{ return MOD_ASSIGN; }
+"&="					{ return AND_ASSIGN; }
+"^="					{ return XOR_ASSIGN; }
+"|="					{ return OR_ASSIGN; }
+">>"					{ return RIGHT_OP; }
+"<<"					{ return LEFT_OP; }
+"&&"					{ return AND_OP; }
+"||"					{ return OR_OP; }
+"<="					{ return LE_OP; }
+">="					{ return GE_OP; }
+"=="					{ return EQ_OP; }
+"!="					{ return NE_OP; }
+";"					{ return ';'; }
+("{"|"<%")				{ return '{'; }
+("}"|"%>")				{ return '}'; }
+","					{ return ','; }
+":"					{ return ':'; }
+"="					{ return '='; }
+"("					{ return '('; }
+")"					{ return ')'; }
+("["|"<:")				{ return '['; }
+("]"|":>")				{ return ']'; }
+"."					{ return '.'; }
+"&"					{ return '&'; }
+"!"					{ return '!'; }
+"~"					{ return '~'; }
+"-"					{ return '-'; }
+"+"					{ return '+'; }
+"*"					{ return '*'; }
+"/"					{ return '/'; }
+"%"					{ return '%'; }
+"<"					{ return '<'; }
+">"					{ return '>'; }
+"^"					{ return '^'; }
+"|"					{ return '|'; }
+"?"					{ return '?'; }
 
-/*
-*	it actually will only return IDENTIFIER
-*/
-
-	return IDENTIFIER;
-}
+{WS}+					{ /* whitespace separates tokens */ }
+.					{ /* discard bad characters */ }
+%%

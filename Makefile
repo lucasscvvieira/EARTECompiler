@@ -19,7 +19,7 @@ LFLAGS = #-L/home/newhall/lib  -L../lib
 LIBS = #-lmylib -lm
 
 # define the C source files
-SRCS =  ./src/main.c ./src/parser.c
+SRCS =  ./src/main.c ./src/parser.c ./src/scanner.c
 
 # define the C object files 
 #
@@ -45,7 +45,7 @@ MAIN = ec #EARTECompiler
 all: format $(MAIN)
 	@echo Simple compiler named ec has been compiled
 
-$(MAIN): bison $(OBJS) 
+$(MAIN): flex $(OBJS) 
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
 
 # this is a suffix replacement rule for building .o's from .c's
@@ -56,7 +56,7 @@ $(MAIN): bison $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c
+	$(RM) *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
@@ -75,3 +75,6 @@ run:
 
 bison: src/parser.y
 	bison src/parser.y
+
+flex: bison src/scanner.l
+	flex src/scanner.l

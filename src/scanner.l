@@ -34,6 +34,8 @@ extern void yyerror(const char *);  /* prints grammar violation message */
 
 static void comment(void);
 
+static void comment(void);
+
 %}
 
 %%

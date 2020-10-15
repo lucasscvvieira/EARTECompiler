@@ -1,2 +1,2 @@
-syntax error, unexpected $end, expecting CHAR or INT or FLOAT
+syntax error, unexpected $end, expecting CHAR or INT or FLOAT or VOID
 PARSE FAILED!

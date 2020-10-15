@@ -32,9 +32,6 @@ WS  [ \t\v\n\f]
 
 extern void yyerror(const char *);  /* prints grammar violation message */
 
-extern int sym_type(const char *);  /* returns type from symbol table */
-
-#define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 
 static void comment(void);
 
@@ -42,82 +39,83 @@ static void comment(void);
 
 %%
 
-"/*"                                    { comment(); }
-"//".*                                    { /* consume //-comment */ }
+"/*"                                { comment(); }
+"//".*                              { /* consume //-comment */ }
 
-"char"					{ return(CHAR); }
-"do"					{ return(DO); }
-"else"					{ return(ELSE); }
-"float"					{ return(FLOAT); }
-"for"					{ return(FOR); }
-"if"					{ return(IF); }
-"int"					{ return(INT); }
-"return"				{ return(RETURN); }
-"while"					{ return(WHILE); }
-"__func__"                              { return FUNC_NAME; }
+"char"					            { return(CHAR); }
+"do"					            { return(DO); }
+"else"					            { return(ELSE); }
+"float"					            { return(FLOAT); }
+"for"					            { return(FOR); }
+"if"					            { return(IF); }
+"int"					            { return(INT); }
+"return"				            { return(RETURN); }
+"while"					            { return(WHILE); }
+"void"                              { return(VOID); }
+"__func__"                          { return FUNC_NAME; }
 
-{L}{A}*					{ return IDENTIFIER; }
+{L}{A}*					            { return IDENTIFIER; }
 
-{HP}{H}+{IS}?				{ return CONSTANT; }
-{NZ}{D}*{IS}?				{ return CONSTANT; }
-"0"{O}*{IS}?				{ return CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		{ return CONSTANT; }
+{HP}{H}+{IS}?			            { return CONSTANT; }
+{NZ}{D}*{IS}?			            { return CONSTANT; }
+"0"{O}*{IS}?				        { return CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"		    { return CONSTANT; }
 
-{D}+{E}{FS}?				{ return CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			{ return CONSTANT; }
-{D}+"."{E}?{FS}?			{ return CONSTANT; }
-{HP}{H}+{P}{FS}?			{ return CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			{ return CONSTANT; }
-{HP}{H}+"."{P}{FS}?			{ return CONSTANT; }
+{D}+{E}{FS}?				        { return CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			    { return CONSTANT; }
+{D}+"."{E}?{FS}?			        { return CONSTANT; }
+{HP}{H}+{P}{FS}?			        { return CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			    { return CONSTANT; }
+{HP}{H}+"."{P}{FS}?			        { return CONSTANT; }
 
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ return STRING_LITERAL; }
 
 
-">>="					{ return RIGHT_ASSIGN; }
-"<<="					{ return LEFT_ASSIGN; }
-"+="					{ return ADD_ASSIGN; }
-"-="					{ return SUB_ASSIGN; }
-"*="					{ return MUL_ASSIGN; }
-"/="					{ return DIV_ASSIGN; }
-"%="					{ return MOD_ASSIGN; }
-"&="					{ return AND_ASSIGN; }
-"^="					{ return XOR_ASSIGN; }
-"|="					{ return OR_ASSIGN; }
-">>"					{ return RIGHT_OP; }
-"<<"					{ return LEFT_OP; }
-"&&"					{ return AND_OP; }
-"||"					{ return OR_OP; }
-"<="					{ return LE_OP; }
-">="					{ return GE_OP; }
-"=="					{ return EQ_OP; }
-"!="					{ return NE_OP; }
-";"					{ return ';'; }
-("{"|"<%")				{ return '{'; }
-("}"|"%>")				{ return '}'; }
-","					{ return ','; }
-":"					{ return ':'; }
-"="					{ return '='; }
-"("					{ return '('; }
-")"					{ return ')'; }
-("["|"<:")				{ return '['; }
-("]"|":>")				{ return ']'; }
-"."					{ return '.'; }
-"&"					{ return '&'; }
-"!"					{ return '!'; }
-"~"					{ return '~'; }
-"-"					{ return '-'; }
-"+"					{ return '+'; }
-"*"					{ return '*'; }
-"/"					{ return '/'; }
-"%"					{ return '%'; }
-"<"					{ return '<'; }
-">"					{ return '>'; }
-"^"					{ return '^'; }
-"|"					{ return '|'; }
-"?"					{ return '?'; }
+">>="					            { return RIGHT_ASSIGN; }
+"<<="					            { return LEFT_ASSIGN; }
+"+="					            { return ADD_ASSIGN; }
+"-="					            { return SUB_ASSIGN; }
+"*="					            { return MUL_ASSIGN; }
+"/="					            { return DIV_ASSIGN; }
+"%="					            { return MOD_ASSIGN; }
+"&="					            { return AND_ASSIGN; }
+"^="					            { return XOR_ASSIGN; }
+"|="					            { return OR_ASSIGN; }
+">>"					            { return RIGHT_OP; }
+"<<"					            { return LEFT_OP; }
+"&&"					            { return AND_OP; }
+"||"					            { return OR_OP; }
+"<="					            { return LE_OP; }
+">="					            { return GE_OP; }
+"=="					            { return EQ_OP; }
+"!="					            { return NE_OP; }
+";"					                { return ';'; }
+("{"|"<%")				            { return '{'; }
+("}"|"%>")				            { return '}'; }
+","					                { return ','; }
+":"					                { return ':'; }
+"="					                { return '='; }
+"("					                { return '('; }
+")"					                { return ')'; }
+("["|"<:")				            { return '['; }
+("]"|":>")				            { return ']'; }
+"."					                { return '.'; }
+"&"					                { return '&'; }
+"!"					                { return '!'; }
+"~"					                { return '~'; }
+"-"					                { return '-'; }
+"+"					                { return '+'; }
+"*"					                { return '*'; }
+"/"					                { return '/'; }
+"%"					                { return '%'; }
+"<"					                { return '<'; }
+">"					                { return '>'; }
+"^"					                { return '^'; }
+"|"					                { return '|'; }
+"?"					                { return '?'; }
 
-{WS}+					{ /* whitespace separates tokens */ }
-.					{ /* discard bad characters */ }
+{WS}+					            { /* whitespace separates tokens */ }
+.					                { /* discard bad characters */ }
 
 %%
 

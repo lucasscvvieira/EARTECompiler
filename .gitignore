@@ -64,3 +64,5 @@ src/parser.c
 # Flex Files
 src/scanner.c
 
+# Accept tests Files
+!tests/out/*.out

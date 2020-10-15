@@ -56,7 +56,7 @@ $(MAIN): flex $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c
+	$(RM) -rf *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c ./temp/
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
@@ -78,3 +78,6 @@ bison: src/parser.y
 
 flex: bison src/scanner.l
 	flex src/scanner.l
+
+test:
+	./scripts/tests.sh

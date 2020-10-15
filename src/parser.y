@@ -14,7 +14,7 @@ void yyerror(char const *s);
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
-%token	CHAR INT FLOAT
+%token	CHAR INT FLOAT VOID
 
 %token	IF ELSE WHILE DO FOR RETURN
 
@@ -159,6 +159,7 @@ type_specifier
 	: CHAR
 	| INT
 	| FLOAT
+	| VOID
 	;
 
 specifier_qualifier_list

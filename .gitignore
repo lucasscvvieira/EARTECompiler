@@ -55,7 +55,12 @@ dkms.conf
 ec
 
 *~
+*.*~
 
-# bison files
+# Bison Files
 src/parser.h
 src/parser.c
+
+# Flex Files
+src/scanner.c
+

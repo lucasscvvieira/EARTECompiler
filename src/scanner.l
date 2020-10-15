@@ -1,7 +1,6 @@
 %option outfile="src/scanner.c"
 %option noyywrap
 %option nounput
-%option noinput
 
 %e  1019
 %p  2807

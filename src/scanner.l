@@ -31,7 +31,6 @@ WS  [ \t\v\n\f]
 
 extern void yyerror(const char *);  /* prints grammar violation message */
 
-
 static void comment(void);
 
 %}

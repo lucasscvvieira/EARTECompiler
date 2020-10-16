@@ -40,6 +40,7 @@ static void comment(void);
 "/*"                                { comment(); }
 "//".*                              { /* consume //-comment */ }
 
+"break"					            { return(BREAK); }
 "char"					            { return(CHAR); }
 "do"					            { return(DO); }
 "else"					            { return(ELSE); }
@@ -91,13 +92,11 @@ static void comment(void);
 ("{"|"<%")				            { return '{'; }
 ("}"|"%>")				            { return '}'; }
 ","					                { return ','; }
-":"					                { return ':'; }
 "="					                { return '='; }
 "("					                { return '('; }
 ")"					                { return ')'; }
 ("["|"<:")				            { return '['; }
 ("]"|":>")				            { return ']'; }
-"."					                { return '.'; }
 "&"					                { return '&'; }
 "!"					                { return '!'; }
 "~"					                { return '~'; }
@@ -110,7 +109,6 @@ static void comment(void);
 ">"					                { return '>'; }
 "^"					                { return '^'; }
 "|"					                { return '|'; }
-"?"					                { return '?'; }
 
 {WS}+					            { /* whitespace separates tokens */ }
 .					                { /* discard bad characters */ }

@@ -1,2 +1,2 @@
-syntax error, unexpected '}'
+syntax error, unexpected '}', expecting ';'
 PARSE FAILED!

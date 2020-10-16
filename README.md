@@ -11,7 +11,19 @@
 ## Build
 
 ```shell
-make all
+make clean && make
+```
+
+## Format
+
+```shell
+make format
+```
+
+## Test
+
+```shell
+make test
 ```
 
 ## [Escopo](docs/escopo.md)

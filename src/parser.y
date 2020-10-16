@@ -16,7 +16,7 @@ void yyerror(char const *s);
 %token	XOR_ASSIGN OR_ASSIGN
 %token	CHAR INT FLOAT VOID
 
-%token	IF ELSE WHILE DO FOR RETURN
+%token	IF ELSE WHILE DO FOR RETURN BREAK
 
 %start translation_unit
 %%
@@ -285,6 +285,7 @@ iteration_statement
 jump_statement
 	: RETURN ';'
 	| RETURN expression ';'
+	| BREAK ';'
 	;
 
 translation_unit

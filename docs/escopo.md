@@ -45,4 +45,4 @@ Será utilizado funções simples para entrada e saída, não sendo criado todo 
 O foco inicial do desenvolvimento é criar um compilador que contemple a estrutura básica apresentada acima e caso tudo seja finalizado antes do tempo previsto, algumas estruturas podem ser adicionadas, sendo elas:
 - Structs
 - Ponteiros
-- Operadores Unários
+- Operadores Unários (++/--)

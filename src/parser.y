@@ -5,8 +5,24 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include "types.h"
+#include "tables.h"
+#include "parser.h"
+
 int yylex(void);
 void yyerror(char const *s);
+
+void check_var();
+void new_var();
+
+extern char *yytext;
+extern int yylineno;
+
+StrTable *st;
+VarTable *vt;
+
+Type last_decl_type;
 %}
 
 %token	IDENTIFIER CONSTANT STRING_LITERAL FUNC_NAME
@@ -25,7 +41,7 @@ void yyerror(char const *s);
 %%
 
 primary_expression
-	: IDENTIFIER
+	: IDENTIFIER	{ check_var(); }
 	| CONSTANT
 	| string
 	| LPAR expression RPAR
@@ -41,7 +57,7 @@ postfix_expression
 	| postfix_expression '[' expression ']'
 	| postfix_expression LPAR RPAR
 	| postfix_expression LPAR argument_expression_list RPAR
-	| postfix_expression '.' IDENTIFIER
+	| postfix_expression '.' IDENTIFIER { check_var(); }
 	| LPAR type_name RPAR '{' initializer_list '}'
 	| LPAR type_name RPAR '{' initializer_list ',' '}'
 	;
@@ -159,10 +175,10 @@ init_declarator
 	;
 
 type_specifier
-	: CHAR
-	| INT
-	| FLOAT
-	| VOID
+	: CHAR	{ last_decl_type = BOOL_TYPE; }
+	| INT	{ last_decl_type = BOOL_TYPE; }
+	| FLOAT	{ last_decl_type = BOOL_TYPE; }
+	| VOID	{ last_decl_type = BOOL_TYPE; }
 	;
 
 specifier_qualifier_list
@@ -171,7 +187,7 @@ specifier_qualifier_list
 	;
 
 direct_declarator
-	: IDENTIFIER
+	: IDENTIFIER { new_var(); }
 	| LPAR direct_declarator RPAR
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
@@ -193,8 +209,8 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	: IDENTIFIER						{ new_var(); }
+	| identifier_list ',' IDENTIFIER	{ new_var(); }
 	;
 
 type_name
@@ -240,7 +256,7 @@ designator_list
 
 designator
 	: '[' logical_or_expression ']'
-	| '.' IDENTIFIER
+	| '.' IDENTIFIER				{ check_var(); }
 	;
 
 statement
@@ -313,7 +329,26 @@ declaration_list
 
 %%
 
-void yyerror (char const *s)
-{
-  fprintf (stderr, "%s\n", s);
+void check_var() {
+    int idx = lookup_var(vt, yytext);
+    if (idx == -1) {
+        printf("SEMANTIC ERROR (%d): variable '%s' was not declared.\n",
+                yylineno, yytext);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void new_var() {
+    int idx = lookup_var(vt, yytext);
+    if (idx != -1) {
+        printf("SEMANTIC ERROR (%d): variable '%s' already declared at line %d.\n",
+                yylineno, yytext, get_line(vt, idx));
+        exit(EXIT_FAILURE);
+    }
+    add_var(vt, yytext, yylineno, last_decl_type);
+}
+
+void yyerror (char const *s) {
+    printf("SYNTAX ERROR (%d): %s\n", yylineno, s);
+    exit(EXIT_FAILURE);
 }

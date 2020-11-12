@@ -19,7 +19,7 @@ LFLAGS = #-L/home/newhall/lib  -L../lib
 LIBS = #-lmylib -lm
 
 # define the C source files
-SRCS =  ./src/main.c ./src/parser.c ./src/scanner.c
+SRCS =  ./src/main.c ./src/parser.c ./src/scanner.c ./src/types.c ./src/tables.c ./src/utils.c
 
 # define the C object files 
 #
@@ -42,7 +42,7 @@ MAIN = ec #EARTECompiler
 
 .PHONY: depend clean
 
-all: format $(MAIN)
+all: clean $(MAIN) format
 	@echo Simple compiler named ec has been compiled
 
 $(MAIN): flex $(OBJS) 
@@ -58,20 +58,15 @@ $(MAIN): flex $(OBJS)
 clean:
 	$(RM) -rf *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c ./temp/
 
-depend: $(SRCS)
-	makedepend $(INCLUDES) $^
-
-# DO NOT DELETE THIS LINE -- make depend needs it
-
 env:
 	./scripts/env.sh
 
 format:
-	#indent -br -ce -cdw -bad -bap -sc ./src/*.h
+	indent -orig ./src/*.h
 	indent -orig ./src/*.c
 
 run:
-	./ec
+	./ec < ./tests/in/11.c
 
 bison: src/parser.y
 	bison src/parser.y

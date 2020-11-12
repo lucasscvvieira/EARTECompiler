@@ -1,25 +1,38 @@
 #include <stdio.h>
-#include "parser.h"
 
-int yylex_destroy(void);
+#include "parser.h"
+#include "tables.h"
+
+extern int      yylex_destroy(void);
+
+strTable       *st;
+varTable       *vt;
+funcTable      *ft;
 
 int
 main(void)
 {
-    st = create_str_table();
-    vt = create_var_table();
+    st = strTable_create();
+    vt = varTable_create();
+    ft = funcTable_create();
 
     if (yyparse() == 0)
 	printf("PARSE SUCCESSFUL!\n");
     else
 	printf("PARSE FAILED!\n");
-    
-    printf("\n\n");
-    print_str_table(st); printf("\n\n");
-    print_var_table(vt); printf("\n\n");
 
-    free_str_table(st);
-    free_var_table(vt);
+    printf("\n\n");
+    strTable_print(st);
+    printf("\n\n");
+    varTable_print(vt);
+    printf("\n\n");
+    varTable_print(funcTable_get_args(ft, funcTable_lookup(ft, "main")));
+    funcTable_print(ft);
+    printf("\n\n");
+
+    strTable_free(st);
+    varTable_free(vt);
+    funcTable_free(ft);
     yylex_destroy();
 
     return 0;

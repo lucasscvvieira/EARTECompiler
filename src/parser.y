@@ -1,31 +1,30 @@
 %output "src/parser.c"          // File name of generated parser.
 %defines "src/parser.h"         // Produces a 'parser.h'
-%define parse.error verbose // Give proper messages when a syntax error is found.
-%define parse.lac full      // Enable LAC to improve syntax error handling.
+%define parse.error verbose		// Give proper messages when a syntax error is found.
+%define parse.lac full			// Enable LAC to improve syntax error handling.
 
 %{
-#include <stdio.h>
 #include <stdlib.h>
 #include "types.h"
-#include "tables.h"
 #include "parser.h"
 
 int yylex(void);
-void yyerror(char const *s);
+int yylex_destroy(void);
+extern void yyerror(const char *);  /* prints grammar violation message */
 
-void check_var();
-void new_var();
-
-extern char *yytext;
-extern int yylineno;
-
-StrTable *st;
-VarTable *vt;
+extern void check_var();
+extern void new_var();
+extern void check_func();
+extern void new_func();
+extern void new_arg();
 
 Type last_decl_type;
+char *last_decl_func = NULL;
 %}
 
-%token	IDENTIFIER CONSTANT STRING_LITERAL FUNC_NAME
+%union { char *sval; }
+
+%token	<sval> IDENTIFIER CONSTANT STRING_LITERAL FUNC_NAME
 %token	LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -38,10 +37,11 @@ Type last_decl_type;
 %precedence ELSE
 
 %start translation_unit
+
 %%
 
 primary_expression
-	: IDENTIFIER	{ check_var(); }
+	: IDENTIFIER 		{ check_var(); }
 	| CONSTANT
 	| string
 	| LPAR expression RPAR
@@ -55,11 +55,15 @@ string
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression LPAR RPAR
-	| postfix_expression LPAR argument_expression_list RPAR
-	| postfix_expression '.' IDENTIFIER { check_var(); }
-	| LPAR type_name RPAR '{' initializer_list '}'
-	| LPAR type_name RPAR '{' initializer_list ',' '}'
+	| IDENTIFIER { check_func(); } LPAR function_call
+	| postfix_expression '.' IDENTIFIER 			{ check_var(); }
+	| LPAR type_specifier RPAR '{' initializer_list '}'
+	| LPAR type_specifier RPAR '{' initializer_list ',' '}'
+	;
+
+function_call
+	: RPAR
+	| argument_expression_list RPAR
 	;
 
 argument_expression_list
@@ -69,7 +73,7 @@ argument_expression_list
 
 cast_expression
 	: postfix_expression
-	| LPAR type_name RPAR cast_expression
+	| LPAR type_specifier RPAR cast_expression
 	;
 
 multiplicative_expression
@@ -155,13 +159,8 @@ expression
 	;
 
 declaration
-	: declaration_specifiers ';'
-	| declaration_specifiers init_declarator_list ';'
-	;
-
-declaration_specifiers
-	: type_specifier declaration_specifiers
-	| type_specifier
+	: type_specifier ';'
+	| type_specifier init_declarator_list ';'
 	;
 
 init_declarator_list
@@ -175,26 +174,28 @@ init_declarator
 	;
 
 type_specifier
-	: CHAR	{ last_decl_type = BOOL_TYPE; }
-	| INT	{ last_decl_type = BOOL_TYPE; }
-	| FLOAT	{ last_decl_type = BOOL_TYPE; }
-	| VOID	{ last_decl_type = BOOL_TYPE; }
-	;
-
-specifier_qualifier_list
-	: type_specifier specifier_qualifier_list
-	| type_specifier
+	: CHAR	{ last_decl_type = CHAR_TYPE; }
+	| INT	{ last_decl_type = INT_TYPE; }
+	| FLOAT	{ last_decl_type = FLOAT_TYPE; }
+	| VOID	{ last_decl_type = VOID_TYPE; }
 	;
 
 direct_declarator
-	: IDENTIFIER { new_var(); }
+	: IDENTIFIER 
 	| LPAR direct_declarator RPAR
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
 	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator LPAR parameter_list RPAR
-	| direct_declarator LPAR RPAR
-	| direct_declarator LPAR identifier_list RPAR
+	;
+
+func_declarator
+	: IDENTIFIER { new_func(); } LPAR function_declaration
+	;
+
+function_declaration
+	: RPAR
+	| parameter_list RPAR
+	| identifier_list RPAR
 	;
 
 parameter_list
@@ -203,33 +204,21 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers direct_declarator
-	| declaration_specifiers direct_abstract_declarator
-	| declaration_specifiers
+	: type_specifier direct_parameter_declarator
+	| type_specifier
+	;
+
+direct_parameter_declarator
+	: IDENTIFIER { new_arg(); }
+	| LPAR direct_parameter_declarator RPAR
+	| direct_parameter_declarator '[' ']'
+	| direct_parameter_declarator '[' '*' ']'
+	| direct_parameter_declarator '[' assignment_expression ']'
 	;
 
 identifier_list
-	: IDENTIFIER						{ new_var(); }
-	| identifier_list ',' IDENTIFIER	{ new_var(); }
-	;
-
-type_name
-	: specifier_qualifier_list direct_abstract_declarator
-	| specifier_qualifier_list
-	;
-
-direct_abstract_declarator
-	: LPAR direct_abstract_declarator RPAR
-	| '[' ']'
-	| '[' '*' ']'
-	| '[' assignment_expression ']'
-	| direct_abstract_declarator '[' ']'
-	| direct_abstract_declarator '[' '*' ']'
-	| direct_abstract_declarator '[' assignment_expression ']'
-	| LPAR RPAR
-	| LPAR parameter_list RPAR
-	| direct_abstract_declarator LPAR RPAR
-	| direct_abstract_declarator LPAR parameter_list RPAR
+	: IDENTIFIER						{ check_var(); }
+	| identifier_list ',' IDENTIFIER	{ check_var(); }
 	;
 
 initializer
@@ -269,7 +258,7 @@ statement
 
 compound_statement
 	: '{' '}'
-	| '{'  block_item_list '}'
+	| '{' block_item_list '}'
 	;
 
 block_item_list
@@ -313,13 +302,17 @@ translation_unit
 	;
 
 external_declaration
-	: function_definition
+	: function_definition { free(last_decl_func); last_decl_func = NULL; }
 	| declaration
 	;
 
 function_definition
-	: declaration_specifiers direct_declarator declaration_list compound_statement
-	| declaration_specifiers direct_declarator compound_statement
+	: type_specifier func_declarator function_definition_aux
+	;
+
+function_definition_aux
+	: declaration_list compound_statement
+	| compound_statement
 	;
 
 declaration_list
@@ -329,26 +322,3 @@ declaration_list
 
 %%
 
-void check_var() {
-    int idx = lookup_var(vt, yytext);
-    if (idx == -1) {
-        printf("SEMANTIC ERROR (%d): variable '%s' was not declared.\n",
-                yylineno, yytext);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void new_var() {
-    int idx = lookup_var(vt, yytext);
-    if (idx != -1) {
-        printf("SEMANTIC ERROR (%d): variable '%s' already declared at line %d.\n",
-                yylineno, yytext, get_line(vt, idx));
-        exit(EXIT_FAILURE);
-    }
-    add_var(vt, yytext, yylineno, last_decl_type);
-}
-
-void yyerror (char const *s) {
-    printf("SYNTAX ERROR (%d): %s\n", yylineno, s);
-    exit(EXIT_FAILURE);
-}

@@ -181,7 +181,7 @@ type_specifier
 	;
 
 direct_declarator
-	: IDENTIFIER 
+	: IDENTIFIER { new_var(); }
 	| LPAR direct_declarator RPAR
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'

@@ -17,7 +17,7 @@ void
 check_func()
 {
     int             idx = funcTable_lookup(ft, yylval.sval);
-    if (idx != -1) {
+    if (idx == -1) {
 	printf("SEMANTIC ERROR (%d): function '%s' was not declared.\n",
 	       yylineno, yylval.sval);
 	exit(EXIT_FAILURE);
@@ -90,7 +90,7 @@ check_var()
 	idx = varTable_lookup(aux, yylval.sval);
     }
 
-    if (idx != -1) {
+    if (idx == -1) {
 	printf("SEMANTIC ERROR (%d): variable '%s' was not declared.\n",
 	       yylineno, yylval.sval);
 	exit(EXIT_FAILURE);

@@ -1,1 +1,1 @@
-syntax error, unexpected '}', expecting ';'
+SEMANTIC ERROR (4): function 'readInt' was not declared.

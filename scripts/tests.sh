@@ -30,7 +30,7 @@ for f in $(find ${INPUTFOLDER} -name *.c); do
 
     ${COMPILER} < $f > "./temp/${outputFile}" 2>&1
 
-    result=$(diff -y "${OUTPUTFOLDER}${outputFile}" "./temp/${outputFile}")
+    result=$(diff -y --width=150 "${OUTPUTFOLDER}${outputFile}" "./temp/${outputFile}")
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}PASS${NC}...N${outputName}"

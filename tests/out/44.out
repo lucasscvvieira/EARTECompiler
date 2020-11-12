@@ -1,1 +1,1 @@
-PARSE SUCCESSFUL!
+SEMANTIC ERROR (3): function 'strcmp' was not declared.

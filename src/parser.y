@@ -16,7 +16,10 @@ void yyerror(char const *s);
 %token	XOR_ASSIGN OR_ASSIGN
 %token	CHAR INT FLOAT VOID
 
-%token	IF ELSE WHILE DO FOR RETURN BREAK
+%token	IF ELSE LPAR RPAR WHILE DO FOR RETURN BREAK
+
+%precedence RPAR
+%precedence ELSE
 
 %start translation_unit
 %%
@@ -25,7 +28,7 @@ primary_expression
 	: IDENTIFIER
 	| CONSTANT
 	| string
-	| '(' expression ')'
+	| LPAR expression RPAR
 	;
 
 string
@@ -36,11 +39,11 @@ string
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
+	| postfix_expression LPAR RPAR
+	| postfix_expression LPAR argument_expression_list RPAR
 	| postfix_expression '.' IDENTIFIER
-	| '(' type_name ')' '{' initializer_list '}'
-	| '(' type_name ')' '{' initializer_list ',' '}'
+	| LPAR type_name RPAR '{' initializer_list '}'
+	| LPAR type_name RPAR '{' initializer_list ',' '}'
 	;
 
 argument_expression_list
@@ -50,7 +53,7 @@ argument_expression_list
 
 cast_expression
 	: postfix_expression
-	| '(' type_name ')' cast_expression
+	| LPAR type_name RPAR cast_expression
 	;
 
 multiplicative_expression
@@ -169,13 +172,13 @@ specifier_qualifier_list
 
 direct_declarator
 	: IDENTIFIER
-	| '(' direct_declarator ')'
+	| LPAR direct_declarator RPAR
 	| direct_declarator '[' ']'
 	| direct_declarator '[' '*' ']'
 	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator '(' parameter_list ')'
-	| direct_declarator '(' ')'
-	| direct_declarator '(' identifier_list ')'
+	| direct_declarator LPAR parameter_list RPAR
+	| direct_declarator LPAR RPAR
+	| direct_declarator LPAR identifier_list RPAR
 	;
 
 parameter_list
@@ -200,17 +203,17 @@ type_name
 	;
 
 direct_abstract_declarator
-	: '(' direct_abstract_declarator ')'
+	: LPAR direct_abstract_declarator RPAR
 	| '[' ']'
 	| '[' '*' ']'
 	| '[' assignment_expression ']'
 	| direct_abstract_declarator '[' ']'
 	| direct_abstract_declarator '[' '*' ']'
 	| direct_abstract_declarator '[' assignment_expression ']'
-	| '(' ')'
-	| '(' parameter_list ')'
-	| direct_abstract_declarator '(' ')'
-	| direct_abstract_declarator '(' parameter_list ')'
+	| LPAR RPAR
+	| LPAR parameter_list RPAR
+	| direct_abstract_declarator LPAR RPAR
+	| direct_abstract_declarator LPAR parameter_list RPAR
 	;
 
 initializer
@@ -269,17 +272,17 @@ expression_statement
 	;
 
 selection_statement
-	: IF '(' expression ')' statement ELSE statement
-	| IF '(' expression ')' statement
+	: IF LPAR expression RPAR statement ELSE statement
+	| IF LPAR expression RPAR statement
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement
-	| DO statement WHILE '(' expression ')' ';'
-	| FOR '(' expression_statement expression_statement ')' statement
-	| FOR '(' expression_statement expression_statement expression ')' statement
-	| FOR '(' declaration expression_statement ')' statement
-	| FOR '(' declaration expression_statement expression ')' statement
+	: WHILE LPAR expression RPAR statement
+	| DO statement WHILE LPAR expression RPAR ';'
+	| FOR LPAR expression_statement expression_statement RPAR statement
+	| FOR LPAR expression_statement expression_statement expression RPAR statement
+	| FOR LPAR declaration expression_statement RPAR statement
+	| FOR LPAR declaration expression_statement expression RPAR statement
 	;
 
 jump_statement

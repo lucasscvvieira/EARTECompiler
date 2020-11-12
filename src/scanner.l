@@ -93,8 +93,8 @@ static void comment(void);
 ("}"|"%>")				            { return '}'; }
 ","					                { return ','; }
 "="					                { return '='; }
-"("					                { return '('; }
-")"					                { return ')'; }
+"("     				            { return LPAR; }
+")"     				            { return RPAR; }
 ("["|"<:")				            { return '['; }
 ("]"|":>")				            { return ']'; }
 "&"					                { return '&'; }

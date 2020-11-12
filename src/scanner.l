@@ -47,8 +47,6 @@ static void comment(void);
 "float"					            { return(FLOAT); }
 "for"					            { return(FOR); }
 "if"					            { return(IF); }
-"("     				            { return LPAR; }
-")"     				            { return RPAR; }
 "int"					            { return(INT); }
 "return"				            { return(RETURN); }
 "while"					            { return(WHILE); }
@@ -95,8 +93,8 @@ static void comment(void);
 ("}"|"%>")				            { return '}'; }
 ","					                { return ','; }
 "="					                { return '='; }
-"("					                { return '('; }
-")"					                { return ')'; }
+"("     				            { return LPAR; }
+")"     				            { return RPAR; }
 ("["|"<:")				            { return '['; }
 ("]"|":>")				            { return ']'; }
 "&"					                { return '&'; }

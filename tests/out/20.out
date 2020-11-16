@@ -1,1 +1,1 @@
-PARSE SUCCESSFUL!
+SEMANTIC ERROR (5): function 'readInt' was not declared.

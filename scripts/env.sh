@@ -1,9 +1,8 @@
 #!/bin/bash
 
-OS=$(lsb_release -a | grep "Distributor ID:" | cut -d ":" -f 2 | sed -e "s/ //g" -e "s/\t//g")
+DISTRO=$(awk -F= '$1=="ID" { print $2 ;}' /etc/os-release)
 
-if [ $OS = "Ubuntu" ]
-then
+if [ $DISTRO = "ubuntu" ]; then
     echo "Ubuntu reconhecido! Instalando dependências..."
     echo
     sudo apt-get install -y gcc make build-essential flex bison indent

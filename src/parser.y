@@ -12,6 +12,11 @@ int yylex(void);
 int yylex_destroy(void);
 extern void yyerror(const char *);  /* prints grammar violation message */
 
+extern Type unify_bin_op(Type l, Type r,
+                  const char* op, Type (*unify)(Type,Type));
+extern void check_assign(Type l, Type r);
+extern void check_bool_expr(const char* cmd, Type t);
+
 extern void check_var();
 extern void new_var();
 extern void check_func();
@@ -21,6 +26,8 @@ extern void new_arg();
 Type last_decl_type;
 char *last_decl_func = NULL;
 %}
+
+%define api.value.type {Type}
 
 %union { char *sval; }
 

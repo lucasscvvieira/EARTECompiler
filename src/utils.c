@@ -22,6 +22,8 @@ check_func()
 	       yylineno, yylval.sval);
 	exit(EXIT_FAILURE);
     }
+
+	return funcTable_get_type(ft, idx);
 }
 
 void
@@ -65,7 +67,7 @@ new_arg()
     varTable_add(args, yylval.sval, yylineno, last_decl_type);
 }
 
-void
+Type
 check_var()
 {
     int             idx = -1;
@@ -95,6 +97,8 @@ check_var()
 	       yylineno, yylval.sval);
 	exit(EXIT_FAILURE);
     }
+
+	return varTable_get_line(vt, idx);
 }
 
 void
@@ -135,4 +139,39 @@ new_var()
 		     ), yylval.sval, yylineno, last_decl_type);
     } else
 	varTable_add(vt, yylval.sval, yylineno, last_decl_type);
+}
+
+// ----------------------------------------------------------------------------
+
+// Type checking and inference.
+
+void type_error(const char* op, Type t1, Type t2) {
+    printf("SEMANTIC ERROR (%d): incompatible types for operator '%s', LHS is '%s' and RHS is '%s'.\n",
+           yylineno, op, get_text(t1), get_text(t2));
+    exit(EXIT_FAILURE);
+}
+
+Type unify_bin_op(Type l, Type r,
+                  const char* op, Type (*unify)(Type,Type)) {
+    Type unif = unify(l, r);
+    if (unif == NO_TYPE) {
+        type_error(op, l, r);
+    }
+    return unif;
+}
+
+void check_assign(Type l, Type r) {
+	if (l == VOID_TYPE) type_error(":=", l, r);
+    if (l == BOOL_TYPE && r != BOOL_TYPE) type_error(":=", l, r);
+    if (l == CHAR_TYPE && r != CHAR_TYPE)  type_error(":=", l, r);
+    if (l == INT_TYPE  && r != INT_TYPE)  type_error(":=", l, r);
+    if (l == FLOAT_TYPE && !(r == INT_TYPE || r == FLOAT_TYPE)) type_error(":=", l, r);
+}
+
+void check_bool_expr(const char* cmd, Type t) {
+    if (t != BOOL_TYPE) {
+        printf("SEMANTIC ERROR (%d): conditional expression in '%s' is '%s' instead of '%s'.\n",
+           yylineno, cmd, get_text(t), get_text(BOOL_TYPE));
+        exit(EXIT_FAILURE);
+    }
 }

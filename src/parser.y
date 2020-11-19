@@ -4,34 +4,32 @@
 %define parse.lac full			// Enable LAC to improve syntax error handling.
 
 %{
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "utils.h"
+#include "bison.h"
 #include "types.h"
+#include "tables.h"
 #include "parser.h"
 
 int yylex(void);
 int yylex_destroy(void);
 extern void yyerror(const char *);  /* prints grammar violation message */
-
-extern Type unify_bin_op(Type l, Type r,
-                  const char* op, Type (*unify)(Type,Type));
-extern void check_assign(Type l, Type r);
-extern void check_bool_expr(const char* cmd, Type t);
-
-extern void check_var();
-extern void new_var();
-extern void check_func();
-extern void new_func();
-extern void new_arg();
+extern strTable *st;
 
 Type last_decl_type;
+Type last_return_type;
 char *last_decl_func = NULL;
+char *last_called_func = NULL;
+int arg_num = 0;
+
 %}
 
-%define api.value.type {Type}
+%define api.value.type {bison_type}
 
-%union { char *sval; }
-
-%token	<sval> IDENTIFIER CONSTANT STRING_LITERAL FUNC_NAME
+%token	IDENTIFIER STRING_LITERAL
+%token  I_CONSTANT F_CONSTANT
 %token	LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -48,24 +46,30 @@ char *last_decl_func = NULL;
 %%
 
 primary_expression
-	: IDENTIFIER 		{ check_var(); }
-	| CONSTANT
-	| string
-	| LPAR expression RPAR
-	;
+	: IDENTIFIER 			{ $$.type = check_var(); }
+	| I_CONSTANT			{ $$.type = INT_TYPE; }
+	| F_CONSTANT			{ $$.type = FLOAT_TYPE; }
 
-string
-	: STRING_LITERAL
-	| FUNC_NAME
+	| STRING_LITERAL		{ if (strlen(strTable_get(st, strTable_length(st) - 1)) > 1 )
+								$$.type = CHAR_ARRAY_TYPE;
+							else
+							  	$$.type = CHAR_TYPE;
+							}
+
+	| LPAR expression RPAR	{ $$.type = $2.type; }
 	;
 
 postfix_expression
-	: primary_expression
-	| postfix_expression '[' expression ']'
-	| IDENTIFIER { check_func(); } LPAR function_call
-	| postfix_expression '.' IDENTIFIER 			{ check_var(); }
-	| LPAR type_specifier RPAR '{' initializer_list '}'
-	| LPAR type_specifier RPAR '{' initializer_list ',' '}'
+	: primary_expression { $$.type = $1.type; }
+	| postfix_expression '[' expression { $1.type = back_to_non_array_type($1.type); }
+		']' { $$.type = $1.type; }
+
+	| IDENTIFIER { last_called_func = strdup($1.sval); $1.type = check_func(); }
+		LPAR { arg_num = 0; }
+		function_call { $$.type = $1.type; }
+
+	| LPAR type_specifier RPAR '{' initializer_list '}' { $$.type = $2.type; }
+	| LPAR type_specifier RPAR '{' initializer_list ',' '}' { $$.type = $2.type; }
 	;
 
 function_call
@@ -74,76 +78,76 @@ function_call
 	;
 
 argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
+	: assignment_expression									{ check_arg(); arg_num++; } 
+	| argument_expression_list ',' assignment_expression	{ check_arg(); arg_num++; }
 	;
 
 cast_expression
-	: postfix_expression
-	| LPAR type_specifier RPAR cast_expression
+	: postfix_expression						{ $$.type = $1.type; }
+	| LPAR type_specifier RPAR cast_expression	{ $$.type = $2.type; }
 	;
 
 multiplicative_expression
-	: cast_expression
-	| multiplicative_expression '*' cast_expression
-	| multiplicative_expression '/' cast_expression
-	| multiplicative_expression '%' cast_expression
+	: cast_expression								{ $$.type = $1.type; }
+	| multiplicative_expression '*' cast_expression	{ $$.type = unify_bin_op($1.type, $3.type, "*", unify_other_arith); }
+	| multiplicative_expression '/' cast_expression	{ $$.type = unify_bin_op($1.type, $3.type, "/", unify_other_arith); }
+	| multiplicative_expression '%' cast_expression	{ $$.type = unify_bin_op($1.type, $3.type, "%", unify_other_arith); }
 	;
 
 additive_expression
-	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression
-	| additive_expression '-' multiplicative_expression
+	: multiplicative_expression							{ $$.type = $1.type;}
+	| additive_expression '+' multiplicative_expression	{ $$.type = unify_bin_op($1.type, $3.type, "+", unify_plus); }
+	| additive_expression '-' multiplicative_expression { $$.type = unify_bin_op($1.type, $3.type, "-", unify_other_arith); }
 	;
 
 shift_expression
-	: additive_expression
-	| shift_expression LEFT_OP additive_expression
-	| shift_expression RIGHT_OP additive_expression
+	: additive_expression							{ $$.type = $1.type; }
+	| shift_expression LEFT_OP additive_expression	{ $$.type = $1.type; }
+	| shift_expression RIGHT_OP additive_expression	{ $$.type = $1.type; }
 	;
 
 relational_expression
-	: shift_expression
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
-	| relational_expression LE_OP shift_expression
-	| relational_expression GE_OP shift_expression
+	: shift_expression								{ $$.type = $1.type; }
+	| relational_expression '<' shift_expression	{ $$.type = unify_bin_op($1.type, $3.type, "<", unify_comp); }
+	| relational_expression '>' shift_expression	{ $$.type = unify_bin_op($1.type, $3.type, ">", unify_comp); }
+	| relational_expression LE_OP shift_expression	{ $$.type = unify_bin_op($1.type, $3.type, "<=", unify_comp); }
+	| relational_expression GE_OP shift_expression	{ $$.type = unify_bin_op($1.type, $3.type, ">=", unify_comp); }
 	;
 
 equality_expression
-	: relational_expression
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
+	: relational_expression								{ $$.type = $1.type; }
+	| equality_expression EQ_OP relational_expression 	{ $$.type = unify_bin_op($1.type, $3.type, "==", unify_comp); }
+	| equality_expression NE_OP relational_expression 	{ $$.type = unify_bin_op($1.type, $3.type, "!=", unify_comp); }
 	;
 
 and_expression
-	: equality_expression
-	| and_expression '&' equality_expression
+	: equality_expression						{ $$.type = $1.type; }
+	| and_expression '&' equality_expression	{ $$.type = unify_bin_op($1.type, $3.type, "&", unify_logic); }
 	;
 
 exclusive_or_expression
-	: and_expression
-	| exclusive_or_expression '^' and_expression
+	: and_expression								{ $$.type = $1.type; }
+	| exclusive_or_expression '^' and_expression	{ $$.type = unify_bin_op($1.type, $3.type, "^", unify_logic); }
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression
-	| inclusive_or_expression '|' exclusive_or_expression
+	: exclusive_or_expression								{ $$.type = $1.type; }
+	| inclusive_or_expression '|' exclusive_or_expression	{ $$.type = unify_bin_op($1.type, $3.type, "|", unify_logic); }
 	;
 
 logical_and_expression
-	: inclusive_or_expression
-	| logical_and_expression AND_OP inclusive_or_expression
+	: inclusive_or_expression								{ $$.type = $1.type; }
+	| logical_and_expression AND_OP inclusive_or_expression	{ $$.type = unify_bin_op($1.type, $3.type, "&&", unify_logic); }
 	;
 
 logical_or_expression
-	: logical_and_expression
-	| logical_or_expression OR_OP logical_and_expression
+	: logical_and_expression								{ $$.type = $1.type; }
+	| logical_or_expression OR_OP logical_and_expression	{ $$.type = unify_bin_op($1.type, $3.type, "||", unify_logic); }
 	;
 
 assignment_expression
-	: logical_or_expression
-	| postfix_expression assignment_operator assignment_expression
+	: logical_or_expression											{ $$.type = $1.type; }
+	| postfix_expression assignment_operator assignment_expression	{ check_assign($1.type, $3.type); $$.type = $1.type; }
 	;
 
 assignment_operator
@@ -161,8 +165,8 @@ assignment_operator
 	;
 
 expression
-	: assignment_expression
-	| expression ',' assignment_expression
+	: assignment_expression					{ $$.type = $1.type; }
+	| expression ',' assignment_expression	{ $$.type = $3.type; }
 	;
 
 declaration
@@ -176,27 +180,37 @@ init_declarator_list
 	;
 
 init_declarator
-	: direct_declarator '=' initializer
-	| direct_declarator
+	: direct_declarator { new_var();
+						  last_decl_type = back_to_non_array_type(last_decl_type);
+						} init_direct_declarator
+	;
+
+init_direct_declarator
+	: %empty
+	| '=' initializer
 	;
 
 type_specifier
-	: CHAR	{ last_decl_type = CHAR_TYPE; }
-	| INT	{ last_decl_type = INT_TYPE; }
-	| FLOAT	{ last_decl_type = FLOAT_TYPE; }
-	| VOID	{ last_decl_type = VOID_TYPE; }
+	: CHAR	{ last_decl_type = CHAR_TYPE; $$.type = CHAR_TYPE; }
+	| INT	{ last_decl_type = INT_TYPE; $$.type = INT_TYPE; }
+	| FLOAT	{ last_decl_type = FLOAT_TYPE; $$.type = FLOAT_TYPE; }
+	| VOID	{ last_decl_type = VOID_TYPE; $$.type = VOID_TYPE; }
 	;
 
 direct_declarator
-	: IDENTIFIER { new_var(); }
-	| LPAR direct_declarator RPAR
-	| direct_declarator '[' ']'
-	| direct_declarator '[' '*' ']'
-	| direct_declarator '[' assignment_expression ']'
+	: IDENTIFIER					{ $$.sval = strdup($1.sval); }
+	| LPAR direct_declarator RPAR	{ $$.sval = strdup($2.sval); }
+
+	| direct_declarator '[' { last_decl_type = get_array_type(last_decl_type); }
+		direct_declarator_array		{ $$.sval = strdup($1.sval); }
+
+	| direct_declarator { new_func(); } LPAR function_declaration
 	;
 
-func_declarator
-	: IDENTIFIER { new_func(); } LPAR function_declaration
+direct_declarator_array
+	: ']'
+	| '*' ']'
+	| assignment_expression ']'
 	;
 
 function_declaration
@@ -211,16 +225,22 @@ parameter_list
 	;
 
 parameter_declaration
-	: type_specifier direct_parameter_declarator
+	: type_specifier direct_parameter_declarator { new_arg(); }
 	| type_specifier
 	;
 
 direct_parameter_declarator
-	: IDENTIFIER { new_arg(); }
-	| LPAR direct_parameter_declarator RPAR
-	| direct_parameter_declarator '[' ']'
-	| direct_parameter_declarator '[' '*' ']'
-	| direct_parameter_declarator '[' assignment_expression ']'
+	: IDENTIFIER							{ $$.sval = strdup($1.sval); }
+	| LPAR direct_parameter_declarator RPAR { $$.sval = strdup($2.sval); }
+
+	| direct_parameter_declarator '[' { last_decl_type = get_array_type(last_decl_type); }
+		direct_parameter_declarator_array	{ $$.sval = strdup($1.sval); }
+	;
+
+direct_parameter_declarator_array
+	: ']'
+	| '*' ']'
+	| assignment_expression ']'
 	;
 
 identifier_list
@@ -246,13 +266,8 @@ designation
 	;
 
 designator_list
-	: designator
-	| designator_list designator
-	;
-
-designator
 	: '[' logical_or_expression ']'
-	| '.' IDENTIFIER				{ check_var(); }
+	| designator_list '[' logical_or_expression ']'
 	;
 
 statement
@@ -284,8 +299,8 @@ expression_statement
 	;
 
 selection_statement
-	: IF LPAR expression RPAR statement ELSE statement
-	| IF LPAR expression RPAR statement
+	: IF LPAR expression RPAR statement ELSE statement	{ check_bool_expr("if", $3.type); }
+	| IF LPAR expression RPAR statement					{ check_bool_expr("if", $3.type); }
 	;
 
 iteration_statement
@@ -298,8 +313,8 @@ iteration_statement
 	;
 
 jump_statement
-	: RETURN ';'
-	| RETURN expression ';'
+	: RETURN ';' { check_return(VOID_TYPE); }
+	| RETURN expression ';' { check_return($2.type); last_return_type = $2.type; }
 	| BREAK ';'
 	;
 
@@ -314,7 +329,7 @@ external_declaration
 	;
 
 function_definition
-	: type_specifier func_declarator function_definition_aux
+	: type_specifier direct_declarator { last_return_type = VOID_TYPE; } function_definition_aux { check_return(last_return_type); }
 	;
 
 function_definition_aux
@@ -328,4 +343,3 @@ declaration_list
 	;
 
 %%
-

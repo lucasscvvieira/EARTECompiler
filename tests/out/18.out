@@ -1,1 +1,1 @@
-SEMANTIC ERROR (4): function 'readInt' was not declared.
+SYNTAX ERROR (8): syntax error, unexpected '}', expecting WHILE

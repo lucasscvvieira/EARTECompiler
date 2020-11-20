@@ -67,7 +67,7 @@ format:
 	indent -linux ./src/*.c
 
 run:
-	./ec < ./tests/in/12.c
+	./ec < ./tests/in/85.c
 
 bison: src/parser.y
 	bison src/parser.y

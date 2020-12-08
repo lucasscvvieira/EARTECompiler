@@ -1,1 +1,1 @@
-SEMANTIC ERROR (2): function 'printInt' was not declared.
+SEMANTIC ERROR (7): return of type 'void' is different of declared type 'int' of function 'main'.

@@ -1,1 +1,1 @@
-SYNTAX ERROR (2): syntax error, unexpected CONSTANT, expecting IDENTIFIER or LPAR or ';'
+SYNTAX ERROR (2): syntax error, unexpected I_CONSTANT, expecting IDENTIFIER or LPAR or ';'

@@ -1,0 +1,1 @@
+SEMANTIC ERROR (7): return of type 'int' is different of declared type 'void' of function 'main'.

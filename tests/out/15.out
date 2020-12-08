@@ -1,1 +1,1 @@
-SEMANTIC ERROR (4): function 'readInt' was not declared.
+SEMANTIC ERROR (13): return of type 'void' is different of declared type 'int' of function 'main'.

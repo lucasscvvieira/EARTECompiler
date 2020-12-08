@@ -4,6 +4,20 @@
 /* Auto increment variable yylineno every time a '\n' is read. */
 %option yylineno
 
+%{
+    
+#include "types.h"
+#include "bison.h"
+#include "parser.h" // For the token types from bison.
+#include "tables.h"
+
+extern strTable *st;
+
+void yyerror(const char *);  /* prints grammar violation message */
+static void comment(void);
+
+%}
+
 %e  1019
 %p  2807
 %n  371
@@ -27,19 +41,6 @@ SP  (u8|u|U|L)
 ES  (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 WS  [ \t\v\n\f]
 
-%{
-    
-#include "parser.h" // For the token types from bison.
-#include "types.h"
-#include "tables.h"
-
-extern strTable *st;
-
-void yyerror(const char *);  /* prints grammar violation message */
-static void comment(void);
-
-%}
-
 %%
 
 "/*"                                { comment(); }
@@ -56,21 +57,20 @@ static void comment(void);
 "return"                            { return(RETURN); }
 "while"                             { return(WHILE); }
 "void"                              { return(VOID); }
-"__func__"                          { return FUNC_NAME; }
 
 {L}{A}*                             { yylval.sval = strdup(yytext); return IDENTIFIER; }
 
-{HP}{H}+{IS}?                       { return CONSTANT; }
-{NZ}{D}*{IS}?                       { return CONSTANT; }
-"0"{O}*{IS}?                        { return CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"         { return CONSTANT; }
+{HP}{H}+{IS}?				        { return I_CONSTANT; }
+{NZ}{D}*{IS}?				        { return I_CONSTANT; }
+"0"{O}*{IS}?				        { return I_CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"		    { return I_CONSTANT; }
 
-{D}+{E}{FS}?                        { return CONSTANT; }
-{D}*"."{D}+{E}?{FS}?                { return CONSTANT; }
-{D}+"."{E}?{FS}?                    { return CONSTANT; }
-{HP}{H}+{P}{FS}?                    { return CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?             { return CONSTANT; }
-{HP}{H}+"."{P}{FS}?                 { return CONSTANT; }
+{D}+{E}{FS}?				        { return F_CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			    { return F_CONSTANT; }
+{D}+"."{E}?{FS}?			        { return F_CONSTANT; }
+{HP}{H}+{P}{FS}?			        { return F_CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			    { return F_CONSTANT; }
+{HP}{H}+"."{P}{FS}?			        { return F_CONSTANT; }
 
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+   { strTable_add(st, yytext); return STRING_LITERAL; }
 

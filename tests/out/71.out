@@ -1,0 +1,1 @@
+SEMANTIC ERROR (14): return of type 'void' is different of declared type 'char' of function 'main'.

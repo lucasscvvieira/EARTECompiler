@@ -1,0 +1,1 @@
+SEMANTIC ERROR (9): return of type 'void' is different of declared type 'int' of function 'main'.

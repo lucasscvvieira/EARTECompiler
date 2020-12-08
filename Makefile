@@ -40,9 +40,7 @@ MAIN = ec #EARTECompiler
 # deleting dependencies appended to the file from 'make depend'
 #
 
-.PHONY: depend clean
-
-all: clean $(MAIN) format
+all: clean format $(MAIN) clean_indent
 	@echo Simple compiler named ec has been compiled
 
 $(MAIN): flex $(OBJS) 
@@ -56,17 +54,20 @@ $(MAIN): flex $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) -rf *.o *~ ./src/*.o ./src/*~ $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c ./temp/
+	$(RM) -rf *.o ./src/*.o $(MAIN) ./src/parser.h ./src/parser.c ./src/scanner.c ./temp/
+
+clean_indent:
+	$(RM) -rf *~ ./src/*~
 
 env:
 	./scripts/env.sh
 
 format:
-	indent -orig ./src/*.h
-	indent -orig ./src/*.c
+	indent -linux ./src/*.h
+	indent -linux ./src/*.c
 
 run:
-	./ec < ./tests/in/29.c
+	./ec < ./tests/in/85.c
 
 bison: src/parser.y
 	bison src/parser.y

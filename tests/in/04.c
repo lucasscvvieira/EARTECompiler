@@ -1,1 +1,1 @@
-int main(void) ok
+int main() ok

@@ -60,19 +60,29 @@ WS  [ \t\v\n\f]
 
 {L}{A}*                             { yylval.sval = strdup(yytext); return IDENTIFIER; }
 
-{HP}{H}+{IS}?				        { return I_CONSTANT; }
-{NZ}{D}*{IS}?				        { return I_CONSTANT; }
-"0"{O}*{IS}?				        { return I_CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		    { return I_CONSTANT; }
+{HP}{H}+{IS}?				        { yylval.ast = new_node(INT_VAL_NODE, atoi(yytext), INT_TYPE); return I_CONSTANT; }
+{NZ}{D}*{IS}?				        { yylval.ast = new_node(INT_VAL_NODE, atoi(yytext), INT_TYPE); return I_CONSTANT; }
+"0"{O}*{IS}?				        { yylval.ast = new_node(INT_VAL_NODE, atoi(yytext), INT_TYPE); return I_CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"		    { yylval.ast = new_node(INT_VAL_NODE, atoi(yytext), INT_TYPE); return I_CONSTANT; }
 
-{D}+{E}{FS}?				        { return F_CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			    { return F_CONSTANT; }
-{D}+"."{E}?{FS}?			        { return F_CONSTANT; }
-{HP}{H}+{P}{FS}?			        { return F_CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			    { return F_CONSTANT; }
-{HP}{H}+"."{P}{FS}?			        { return F_CONSTANT; }
+{D}+{E}{FS}?				        { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			    { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
+{D}+"."{E}?{FS}?			        { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
+{HP}{H}+{P}{FS}?			        { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			    { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
+{HP}{H}+"."{P}{FS}?			        { yylval.ast = new_node(FLOAT_VAL_NODE, 0, FLOAT_TYPE);
+                                        set_float_data(yylval.ast, (float) atof(yytext)); return F_CONSTANT; }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+   { strTable_add(st, yytext); return STRING_LITERAL; }
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+   { if (strlen(yytext) > 1 )
+                                            yylval.ast = new_node(STR_VAL_NODE, strTable_add(st, yytext), CHAR_ARRAY_TYPE);
+                                        else
+                                            yylval.ast = new_node(CHAR_VAL_NODE, strTable_add(st, yytext), CHAR_TYPE);
+                                        return STRING_LITERAL; }
 
 
 ">>="                               { return RIGHT_ASSIGN; }

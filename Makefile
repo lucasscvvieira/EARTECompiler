@@ -2,7 +2,7 @@
 CC = gcc
 
 # define any compile-time flags
-CFLAGS = -Wall -g -o3
+CFLAGS = -Wall -Wconversion -g -o3
 
 # define any directories containing header files other than /usr/include
 #
@@ -19,7 +19,7 @@ LFLAGS = #-L/home/newhall/lib  -L../lib
 LIBS = #-lmylib -lm
 
 # define the C source files
-SRCS =  ./src/main.c ./src/parser.c ./src/scanner.c ./src/types.c ./src/tables.c ./src/utils.c
+SRCS =  ./src/main.c ./src/parser.c ./src/scanner.c ./src/types.c ./src/tables.c ./src/utils.c ./src/ast.c
 
 # define the C object files 
 #
@@ -67,7 +67,7 @@ format:
 	indent -linux ./src/*.c
 
 run:
-	./ec < ./tests/in/85.c
+	./ec < ./tests/in/60.c
 
 bison: src/parser.y
 	bison src/parser.y

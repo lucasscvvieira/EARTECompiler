@@ -1,10 +1,10 @@
 #ifndef BISON_H
 #define BISON_H
 
-#include "types.h"
+#include "ast.h"
 
 typedef struct {
-	Type type;
+	AST *ast;
 	char *sval;
 } bison_type;
 

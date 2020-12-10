@@ -35,7 +35,11 @@ void check_bool_expr(const char *cmd, AST * n);
 
 AST *check_if_then(AST * e, AST * b);
 AST *check_if_then_else(AST * e, AST * b1, AST * b2);
-AST *check_for(AST * b, AST * e);
-AST *check_while(AST * b, AST * e);
-AST *check_do(AST * b, AST * e);
+
+AST *check_while(AST * e, AST * b);
+AST *check_do(AST * e, AST * b);
+AST *check_for_AC(AST * a, AST * e, AST * b);
+AST *check_for_ACI(AST * a, AST * e, AST * i, AST * b);
+AST *check_for_DC(AST * d, AST * e, AST * b);
+AST *check_for_DCI(AST * d, AST * e, AST * i, AST * b);
 #endif

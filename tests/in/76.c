@@ -9,6 +9,6 @@ void main() {
     for(i = 0; a < n; i+=1) { 
 	    aux = a + i; 
 	    a = b; 
-	    b = aux; 
+	    b = i >> b;
     }
 }

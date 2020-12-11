@@ -43,7 +43,7 @@ int arg_num = 0;
 %precedence RPAR
 %precedence ELSE
 
-%start translation_unit
+%start start_program
 
 %%
 
@@ -84,26 +84,26 @@ cast_expression
 	;
 
 multiplicative_expression
-	: cast_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: cast_expression								{ $$.ast = $1.ast; }
 	| multiplicative_expression '*' cast_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, MUL_NODE, "*", unify_other_arith); }
 	| multiplicative_expression '/' cast_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, DIV_NODE, "/", unify_other_arith); }
-	| multiplicative_expression '%' cast_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, MOD_NODE, "%", unify_other_arith); }
+	| multiplicative_expression '%' cast_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, MOD_NODE, "%", unify_logic); }
 	;
 
 additive_expression
-	: multiplicative_expression							{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: multiplicative_expression							{ $$.ast = $1.ast; }
 	| additive_expression '+' multiplicative_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, PLUS_NODE, "+", unify_plus); }
 	| additive_expression '-' multiplicative_expression { $$.ast = unify_bin_node($1.ast, $3.ast, MINUS_NODE, "-", unify_other_arith); }
 	;
 
 shift_expression
-	: additive_expression							{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
-	| shift_expression LEFT_OP additive_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, LEFT_NODE, "<<", unify_comp); }
-	| shift_expression RIGHT_OP additive_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, RIGHT_NODE, ">>", unify_comp); }
+	: additive_expression							{ $$.ast = $1.ast; }
+	| shift_expression LEFT_OP additive_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, LEFT_NODE, "<<", unify_logic); }
+	| shift_expression RIGHT_OP additive_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, RIGHT_NODE, ">>", unify_logic); }
 	;
 
 relational_expression
-	: shift_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: shift_expression								{ $$.ast = $1.ast; }
 	| relational_expression '<' shift_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, LT_NODE, "<", unify_comp); }
 	| relational_expression '>' shift_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, GT_NODE, ">", unify_comp); }
 	| relational_expression LE_OP shift_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, LTE_NODE, "<=", unify_comp); }
@@ -111,38 +111,38 @@ relational_expression
 	;
 
 equality_expression
-	: relational_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: relational_expression								{ $$.ast = $1.ast; }
 	| equality_expression EQ_OP relational_expression 	{ $$.ast = unify_bin_node($1.ast, $3.ast, EQ_NODE, "==", unify_comp); }
 	| equality_expression NE_OP relational_expression 	{ $$.ast = unify_bin_node($1.ast, $3.ast, NE_NODE, "!=", unify_comp); }
 	;
 
 and_expression
-	: equality_expression						{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: equality_expression						{ $$.ast = $1.ast; }
 	| and_expression '&' equality_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, AND_NODE, "&", unify_logic); }
 	;
 
 exclusive_or_expression
-	: and_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: and_expression								{ $$.ast = $1.ast; }
 	| exclusive_or_expression '^' and_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, XOR_NODE, "^", unify_logic); }
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: exclusive_or_expression								{ $$.ast = $1.ast; }
 	| inclusive_or_expression '|' exclusive_or_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, OR_NODE, "|", unify_logic); }
 	;
 
 logical_and_expression
-	: inclusive_or_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: inclusive_or_expression								{ $$.ast = $1.ast; }
 	| logical_and_expression AND_OP inclusive_or_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, AND_NODE, "&&", unify_logic); }
 	;
 
 logical_or_expression
-	: logical_and_expression								{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: logical_and_expression								{ $$.ast = $1.ast; }
 	| logical_or_expression OR_OP logical_and_expression	{ $$.ast = unify_bin_node($1.ast, $3.ast, OR_NODE, "||", unify_logic); }
 	;
 
 assignment_expression
-	: logical_or_expression											{ $$.ast = new_subtree(BLOCK_NODE, get_node_type($1.ast), 1, $1.ast); }
+	: logical_or_expression											{ $$.ast = $1.ast; }
 	| postfix_expression assignment_operator assignment_expression	{ $$.ast = check_assign($1.ast, $2.sval, $3.ast); }
 	;
 
@@ -173,10 +173,10 @@ init_declarator_list
 init_declarator
 	: direct_declarator { $1.ast = new_var();
 						  last_decl_type = back_to_non_array_type(last_decl_type);
-						  $$.ast = new_subtree(BLOCK_NODE, NO_TYPE, 1, $1.ast); }
+						  $$.ast = $1.ast; }
 	| direct_declarator { $1.ast = new_var();
 						  last_decl_type = back_to_non_array_type(last_decl_type);
-						} '=' initializer { $$.ast = new_subtree(BLOCK_NODE, NO_TYPE, 2, $1.ast, $4.ast); }
+						} '=' initializer { $$.ast = new_subtree(ASSIGN_NODE, NO_TYPE, 2, $1.ast, $4.ast); }
 	;
 
 type_specifier
@@ -193,7 +193,7 @@ direct_declarator
 	| direct_declarator '[' { last_decl_type = get_array_type(last_decl_type); }
 		direct_declarator_array		{ $$.sval = strdup($1.sval); add_child($1.ast, $4.ast); $$.ast = $1.ast; }
 
-	| direct_declarator { $1.ast = new_func(); } LPAR function_declaration	{ add_child($1.ast, $4.ast); $$.ast = $1.ast; }
+	| direct_declarator { $1.ast = new_func(); } LPAR function_declaration	{ $$.ast = $1.ast; }
 	;
 
 direct_declarator_array
@@ -240,7 +240,7 @@ statement
 	;
 
 compound_statement
-	: '{' '}'					{ $$.ast = new_subtree(VAR_LIST_NODE, NO_TYPE, 0); }
+	: '{' '}'					{ $$.ast = new_subtree(BLOCK_NODE, NO_TYPE, 0); }
 	| '{' block_item_list '}'	{ $$.ast = $2.ast; }
 	;
 
@@ -269,7 +269,7 @@ iteration_statement
 		{ $$.ast = check_while($3.ast, $5.ast); }
 
 	| DO statement WHILE LPAR expression RPAR ';'														
-		{ $$.ast = check_do($5.ast, $3.ast); }
+		{ $$.ast = check_do($5.ast, $2.ast); }
 
 	| FOR LPAR expression_statement expression_statement RPAR statement									
 		{ $$.ast = check_for_AC($3.ast, $4.ast, $6.ast); }
@@ -285,13 +285,18 @@ iteration_statement
 	;
 
 jump_statement
-	: RETURN ';' 			{ check_return(VOID_TYPE); $$.ast = new_subtree(VAR_LIST_NODE, NO_TYPE, 0); }
-	| RETURN expression ';' { check_return(get_node_type($2.ast)); last_return_type = get_node_type($2.ast); $$.ast = $2.ast;}
-	| BREAK ';'				{ $$.ast = new_subtree(VAR_LIST_NODE, NO_TYPE, 0); }
+	: RETURN ';' 			{ check_return(VOID_TYPE); $$.ast = new_subtree(RETURN, NO_TYPE, 0); }
+	| RETURN expression ';' { check_return(get_node_type($2.ast));
+								last_return_type = get_node_type($2.ast);
+								$$.ast = new_subtree(RETURN_NODE, NO_TYPE, 1, $2.ast);}
+	| BREAK ';'				{ $$.ast = new_subtree(BREAK_NODE, NO_TYPE, 0); }
 	;
 
+start_program
+	: translation_unit { root = new_subtree(PROGRAM_NODE, NO_TYPE, 1, $1.ast); }
+
 translation_unit
-	: external_declaration 					{ root = new_subtree(PROGRAM_NODE, NO_TYPE, 1, $1.ast); }
+	: external_declaration 					{ $$.ast = new_subtree(BLOCK_NODE, NO_TYPE, 1, $1.ast); }
 	| translation_unit external_declaration	{ add_child($1.ast, $2.ast); $$.ast = $1.ast; }
 	;
 
@@ -311,7 +316,7 @@ function_definition_aux
 	;
 
 declaration_list
-	: type_specifier init_declarator_list ';'					{ $$.ast = new_subtree(BLOCK_NODE, NO_TYPE, 1, $1.ast); }
+	: type_specifier init_declarator_list ';'					{ $$.ast = $1.ast; }
 	| declaration_list type_specifier init_declarator_list ';'	{ add_child($1.ast, $3.ast); $$.ast = $1.ast; }
 	;
 

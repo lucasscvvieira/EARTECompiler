@@ -13,6 +13,6 @@ void main() {
         }
 	    aux = a + b; 
 	    a = b; 
-	    b = aux; 
+	    b %= aux; 
     }
 }

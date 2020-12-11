@@ -28,7 +28,7 @@ for f in $(find ${INPUTFOLDER} -name *.c); do
     echo -ne ".......N${outputName}\r"
     sleep 0.05
 
-    ${COMPILER} < $f > "./temp/${outputFile}" 2>&1
+    ${COMPILER} < $f > "./temp/${outputFile}" 1>&1 2>/dev/null
 
     result=$(diff -y --width=150 "${OUTPUTFOLDER}${outputFile}" "./temp/${outputFile}")
 

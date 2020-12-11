@@ -5,9 +5,10 @@ int main(int argc, char argv[]) {
     for(int i=0; i<a; i+=1){
         {
             while(1){
-                break
+                break;
             }
         }
         printInt(i);
     }
+    return 0;
 }

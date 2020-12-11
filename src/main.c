@@ -44,21 +44,20 @@ int main(void)
 
 	if (yyparse() == 0)
 		printf("PARSE SUCCESSFUL!\n");
-/*
+
+	fprintf(stderr, "\n\n");
 	print_dot(root);
 
-	   printf("\n\n");
-	   strTable_print(st);
-	   printf("\n\n");
-	   varTable_print(vt);
-	   printf("\n\n");
-	   varTable_print(funcTable_get_args(ft, funcTable_lookup(ft, "main")));
-	   printf("\n\n");
-	   varTable_print(funcTable_get_vt(ft, funcTable_lookup(ft, "main")));
-	   printf("\n\n");
-	   funcTable_print(ft);
-	   printf("\n\n");
-	 */
+	fprintf(stderr, "\n\n");
+	fprintf(stderr, "Tables Data:\n");
+	fprintf(stderr, "Strings:\n");
+	strTable_print(st);
+	fprintf(stderr, "\n\n");
+	fprintf(stderr, "Global Variables:\n");
+	varTable_print(vt);
+	fprintf(stderr, "\n\n");
+	funcTable_print(ft);
+	fprintf(stderr, "\n\n");
 
 	strTable_free(st);
 	varTable_free(vt);

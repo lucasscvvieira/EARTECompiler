@@ -446,7 +446,7 @@ AST *check_while(AST * e, AST * b)
 AST *check_do(AST * e, AST * b)
 {
 	check_bool_expr("do", e);
-	return new_subtree(DO_NODE, NO_TYPE, 2, e, b);
+	return new_subtree(DO_NODE, NO_TYPE, 2, b, e);
 }
 
 AST *check_for_AC(AST * a, AST * e, AST * b)

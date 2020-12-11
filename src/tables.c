@@ -46,9 +46,8 @@ char *strTable_get(strTable * st, int i)
 
 void strTable_print(strTable * st)
 {
-	printf("Strings table:\n");
 	for (int i = 0; i < st->size; i++) {
-		printf("Entry %d -- %s\n", i, strTable_get(st, i));
+		fprintf(stderr, "Entry %d -- %s\n", i, strTable_get(st, i));
 	}
 }
 
@@ -128,11 +127,12 @@ void varTable_change_type_last(varTable * vt, Type type)
 
 void varTable_print(varTable * vt)
 {
-	printf("Variables table:\n");
 	for (int i = 0; i < vt->size; i++) {
-		printf("Entry %d -- name: %s, line: %d, type: %s\n", i,
-		       varTable_get_name(vt, i), varTable_get_line(vt, i),
-		       get_text(varTable_get_type(vt, i)));
+		fprintf(stderr,
+			"Entry %d -- line: %d,\ttype: %s,\tname: %s\n", i,
+			varTable_get_line(vt, i),
+			get_text(varTable_get_type(vt, i)),
+			varTable_get_name(vt, i));
 	}
 }
 
@@ -221,11 +221,22 @@ Type funcTable_get_type(funcTable * ft, int i)
 
 void funcTable_print(funcTable * ft)
 {
-	printf("Functions table:\n");
 	for (int i = 0; i < ft->size; i++) {
-		printf("Entry %d -- name: %s, line: %d, type: %s\n", i,
-		       funcTable_get_name(ft, i), funcTable_get_line(ft, i),
-		       get_text(funcTable_get_type(ft, i)));
+		fprintf(stderr, "Function \"%s\"\n", funcTable_get_name(ft, i));
+		fprintf(stderr, "Arguments:\n");
+		varTable_print(funcTable_get_args(ft, i));
+		fprintf(stderr, "Variables:\n");
+		varTable_print(funcTable_get_vt(ft, i));
+		fprintf(stderr, "\n\n");
+	}
+
+	fprintf(stderr, "Functions:\n");
+	for (int i = 0; i < ft->size; i++) {
+		fprintf(stderr,
+			"Entry %d -- line: %d,\ttype: %s,\tname: %s\n", i,
+			funcTable_get_line(ft, i),
+			get_text(funcTable_get_type(ft, i)),
+			funcTable_get_name(ft, i));
 	}
 }
 

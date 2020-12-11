@@ -32,5 +32,6 @@ Unif unify_plus(Type lt, Type rt);
 Unif unify_other_arith(Type lt, Type rt);
 Unif unify_comp(Type lt, Type rt);
 Unif unify_logic(Type lt, Type rt);
+Unif unify_shift(Type lt, Type rt);
 
 #endif

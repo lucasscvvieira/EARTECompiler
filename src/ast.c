@@ -212,10 +212,10 @@ char *kind2str(NodeKind kind)
 	case VAR_LIST_NODE:
 		return "var_list";
 		//
-	case READ_NODE:
-		return "read";
-	case WRITE_NODE:
-		return "write";
+	case RETURN_NODE:
+		return "return";
+	case BREAK_NODE:
+		return "break";
 		//
 	case WHILE_NODE:
 		return "while";
@@ -262,30 +262,34 @@ int print_node_dot(AST * node)
 {
 	int my_nr = nr++;
 
-	fprintf(stderr, "node%d[label=\"", my_nr);
-	if (node->type != NO_TYPE) {
-		fprintf(stderr, "(%s) ", get_text(node->type));
-	}
-	if (node->kind == VAR_DECL_NODE || node->kind == VAR_USE_NODE
-	    || node->kind == GLOBAL_VAR_DECL_NODE
-	    || node->kind == GLOBAL_VAR_USE_NODE || node->kind == ARG_DECL_NODE
-	    || node->kind == ARG_USE_NODE) {
-		fprintf(stderr, "%s@", node->name);
-	} else {
-		fprintf(stderr, "%s", kind2str(node->kind));
-	}
-	if (has_data(node->kind)) {
-		if (node->kind == FLOAT_VAL_NODE) {
-			fprintf(stderr, "%.2f", node->data.as_float);
-		} else if (node->kind == STR_VAL_NODE) {
-			fprintf(stderr, "@%d", node->data.as_int);
-		} else if (node->kind == CHAR_VAL_NODE) {
-			fprintf(stderr, "@%d", node->data.as_int);
-		} else {
-			fprintf(stderr, "%d", node->data.as_int);
+	{
+		fprintf(stderr, "node%d[label=\"", my_nr);
+		if (node->type != NO_TYPE && node->kind != BLOCK_NODE) {
+			fprintf(stderr, "(%s) ", get_text(node->type));
 		}
+		if (node->kind == VAR_DECL_NODE || node->kind == VAR_USE_NODE
+		    || node->kind == GLOBAL_VAR_DECL_NODE
+		    || node->kind == GLOBAL_VAR_USE_NODE
+		    || node->kind == ARG_DECL_NODE
+		    || node->kind == ARG_USE_NODE) {
+			fprintf(stderr, "%s@", node->name);
+		} else {
+			fprintf(stderr, "%s", kind2str(node->kind));
+		}
+
+		if (has_data(node->kind)) {
+			if (node->kind == FLOAT_VAL_NODE) {
+				fprintf(stderr, "%.2f", node->data.as_float);
+			} else if (node->kind == STR_VAL_NODE) {
+				fprintf(stderr, "@%d", node->data.as_int);
+			} else if (node->kind == CHAR_VAL_NODE) {
+				fprintf(stderr, "@%d", node->data.as_int);
+			} else {
+				fprintf(stderr, "%d", node->data.as_int);
+			}
+		}
+		fprintf(stderr, "\"];\n");
 	}
-	fprintf(stderr, "\"];\n");
 
 	for (int i = 0; i < node->count; i++) {
 		int child_nr = print_node_dot(node->child[i]);

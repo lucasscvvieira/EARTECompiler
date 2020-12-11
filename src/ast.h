@@ -42,8 +42,8 @@ typedef enum {
 	VAR_USE_NODE,
 	VAR_LIST_NODE,
 	//
-	READ_NODE,
-	WRITE_NODE,
+	RETURN_NODE,
+	BREAK_NODE,
 	//
 	WHILE_NODE,
 	FOR_NODE,
